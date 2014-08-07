@@ -12,11 +12,19 @@ my $p = Net::Ping->new("tcp",2);
 $p->port_number(scalar(getservbyname("http", "tcp")));
 $p->hires();
 
+my $tries = 0;
+my $good = 0;
+my $bad = 0;
+
 while (1) {
 	my ($ret, $duration, $ip) = $p->ping($remote, 5.5);
+	$tries++;
 	if ($ret) {
-		print "good $remote ($ip) $duration\n";
+		$good++;
+		my $perc = sprintf("%0.1f%%", 100 * ($good/$tries));
+		print "good $remote ($ip) $perc $duration\n";
 	} else {
+		$bad++;
 		print "BAD $remote\n";
 	}
 
