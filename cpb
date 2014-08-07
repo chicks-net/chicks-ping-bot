@@ -2,3 +2,23 @@
 
 use strict;
 use warnings;
+use Net::Ping;
+#use Data::Dumper;
+
+#my $remote = '8.8.8.8';
+my $remote = 'www.google.com';
+
+my $p = Net::Ping->new("tcp",2);
+$p->port_number(scalar(getservbyname("http", "tcp")));
+$p->hires();
+
+while (1) {
+	my ($ret, $duration, $ip) = $p->ping($remote, 5.5);
+	if ($ret) {
+		print "good $remote ($ip) $duration\n";
+	} else {
+		print "BAD $remote\n";
+	}
+
+	sleep(2);
+}
