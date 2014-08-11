@@ -1,0 +1,19 @@
+#!/usr/bin/perl
+
+use strict;
+use warnings;
+use Data::Dumper;
+use Buckets;
+
+my $qps_bucket = new Buckets();
+
+for (1..20) {
+	$qps_bucket->add({
+		when => time,
+		what => rand(10),
+	});
+
+	sleep(1);
+}
+
+my $summary = $qps_bucket->summarize();
