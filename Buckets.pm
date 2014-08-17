@@ -35,6 +35,8 @@ sub add {
 	my ( $obj, @items ) = @_;
 	die "not a ref" unless ref $obj;
 
+	my $count = 0;
+
 	foreach my $item (@items) {
 		# is it a valid item?
 		die "no when" unless defined $item->{when};
@@ -51,9 +53,12 @@ sub add {
 		# add it
 		my $when_minute = minute_start($when);
 		push(@{ $obj->{buckets}->{minute}->{$when_minute} },$item);
-
-		$obj->bucket_maintenance(); # keep everything where it belongs
+		$count++;
 	}
+
+	$obj->bucket_maintenance(); # keep everything where it belongs
+
+	return $count;
 }
 
 sub bucket_maintenance {
@@ -143,7 +148,7 @@ Create a new object.  Takes no arguments yet.
 
 =head3 add
 
-Add an item.  See L</ITEMS> for fields in the item.
+Add an item.  See L</ITEMS> for fields in the item.  Returns the number of items added.
 
 =head3 summarize
 
