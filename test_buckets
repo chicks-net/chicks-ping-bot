@@ -4,16 +4,17 @@ use strict;
 use warnings;
 use Data::Dumper;
 use Buckets;
+use Time::HiRes qw(usleep);
 
 my $qps_bucket = new Buckets();
 
-for (1..20) {
+for (1..23) {
 	$qps_bucket->add({
 		when => time,
 		what => rand(10),
 	});
 
-	sleep(1);
+	usleep(100);
 }
 
 my $summary = $qps_bucket->summarize();
