@@ -45,11 +45,12 @@ sub add {
 		my $what = $item->{what};
 		die "bad what" unless $what =~ /^\d+(\.\d+)?/;
 
-		# does it need a new bucket?
-		my $last_minute = $obj->last_minute();
-		my $when_obj = DateTime->new(epoch => $when);
+		my $when_obj = DateTime->from_epoch(epoch => $when);
 		die "bad when obj" unless defined $when_obj;
-	die "unimplemented add()";    # TODO: implement something
+
+		# add it
+		my $when_minute = minute_start($when);
+		push(@{ $obj->{buckets}->{minute}->{$when_minute} },$item);
 
 		$obj->bucket_maintenance(); # keep everything where it belongs
 	}
@@ -59,6 +60,16 @@ sub bucket_maintenance {
 	my ( $obj ) = @_;
 	die "not a ref" unless ref $obj;
 	die "unimplemented bucket_maintenance()";    # TODO: implement something
+}
+
+sub minute_start {
+	my ( $time ) = @_;
+	die "class methods should not get a ref" if ref $time;
+
+	my $time_obj = DateTime->from_epoch(epoch => $time);
+	my $seconds = $time_obj->second();
+	$time_obj->subtract(seconds => $seconds);
+	return $time_obj->epoch();
 }
 
 sub last_minute {
@@ -139,6 +150,22 @@ Add an item.  See L</ITEMS> for fields in the item.
 Get a summary of the bucket for various time periods.
 Returns a hashref with C<minute>, C<hour>, C<day>, C<week>, and C<older>.
 
+=head2 BUCKETS
+
+Buckets should not need to be accessed directly, but 
+this is how the data is stored.
+
+C<minute> buckets are keyed by the epoch time for the beginning of the minute.
+C<minute> buckets contain individual results that occurred within that minute.
+
+C<hour> buckets contain summaries of every minute within the hour.  They are keyed by
+the epoch time of the beginning of the hour.
+
+C<day> buckets contain summaries of every hour within the day.  They are keyed by
+the epoch time of the beginning of the day.
+
+C<week> buckets contain summaries of every day within the week.  They are keyed by
+the epoch time of the beginning of the week.
 
 =head1 TODO
 
