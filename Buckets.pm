@@ -61,9 +61,56 @@ sub add {
 	return $count;
 }
 
+my $bucket_layout = {
+	minute => {
+		keep => 3,
+	},
+	hour => {
+		keep => 3,
+		summarize => 'minute',
+		has => 60,
+	},
+	day => {
+		keep => 3,
+		summarize => 'hour',
+		has => 24,
+	},
+	week => {
+		keep => 0, # forever
+		summarize => 'day',
+		has => 7,
+	},
+};
+
 sub bucket_maintenance {
 	my ( $obj ) = @_;
 	die "not a ref" unless ref $obj;
+
+	# do we need to update any buckets?
+	foreach my $bucket (qw( hour day week )) {
+		my $this_bucket = $obj->{buckets}->{$bucket} || {};
+		my $summarize_key = $bucket_layout->{$bucket}->{summarize};
+		my $summarize_bucket = $obj->{buckets}->{$summarize_key};
+		die "no $summarize_key to summarize" unless defined $summarize_bucket;
+
+		my( $count, $sum ) = ( 0, 0 );
+		foreach my $item_key (keys %$summarize_bucket) {
+			if ( ref($summarize_bucket->{$item_key}) eq 'ARRAY') {
+				# raw item
+				$count++;
+			} else {
+				# already summarized
+				$count += $summarize_bucket->{$item_key}->{count};
+			}
+			$sum += $summarize_bucket->{$item_key}->{what};
+		}
+		
+		$obj->{buckets}->{$bucket} = $this_bucket;
+		print Dumper($obj);
+		die "$bucket $summarize_key";
+	}
+
+	# get rid of old data
 	die "unimplemented bucket_maintenance()";    # TODO: implement something
 }
 
